@@ -51,11 +51,43 @@
     <section id="explore" class="explore section" aria-labelledby="explore-title">
       <div class="wrap">
         <div class="section-heading"><div><span class="section-no">02 / THE SHARED ENGINE</span><h2 id="explore-title">One pipeline.<br><em>Shared by every task.</em></h2></div><p>The engine generates, validates and runs episodes. D1–D6 describe the memory an episode requires; they are not separate engines.</p></div>
-        <div class="shared-engine" id="shared-engine" aria-label="Common engine used by every memory demand">
-          <div class="engine-flow"><div class="flow-card"><span class="step-num">01</span><h5>Define the contract</h5><p>Specify the task grammar, action scope, timing and scoring.</p><small>Existing task definitions</small></div><span class="flow-arrow" aria-hidden="true">→</span><div class="flow-card"><span class="step-num">02</span><h5>Generate an instance</h5><p>Sample preferences, targets, world records and observations.</p><small>Seeded source graph</small></div><span class="flow-arrow" aria-hidden="true">→</span><div class="flow-card"><span class="step-num">03</span><h5>Check admission</h5><p>Independently verify constraints before execution.</p><small>Whole panel checked</small></div></div>
-          <div class="runtime-box common-runtime"><div class="runtime-heading"><span class="runtime-badge">04 / SHARED RUNTIME</span><span>The same execution loop for every demand</span></div><div class="active-path"><div class="path-step"><span>1</span><strong>Observe</strong><p>Deliver the next public message.</p></div><div class="path-step"><span>2</span><strong>Act</strong><p>Receive the agent’s submitted action.</p></div><div class="path-step"><span>3</span><strong>Update &amp; assess</strong><p>Apply the relevant task mechanism.</p></div><div class="path-step"><span>4</span><strong>Record</strong><p>Save actions, events and outcomes.</p></div></div><div class="runtime-footer"><span>Learning mechanisms additionally produce corrections, confirmations and resumed progress from actual actions.</span></div></div>
-          <div class="boundary-grid"><div><span class="boundary-icon">↳</span><h5>The agent’s view</h5><p>Public messages, selected prior public history, its own actions and legality receipts.</p></div><div><span class="boundary-icon">◇</span><h5>The author’s view</h5><p>Targets, source dependencies, task progress and assessment. Environment state is not agent memory.</p></div></div>
-        </div>
+        <figure class="shared-engine engine-blueprint" id="shared-engine" aria-labelledby="blueprint-title">
+          <div class="blueprint-topline"><div><span class="blueprint-kicker">MEMCASA / SYSTEM ARCHITECTURE</span><h3 id="blueprint-title">From a definition to an experience.</h3></div><span class="schematic-badge"><i></i> DATA-FLOW SCHEMATIC</span></div>
+          <div class="blueprint-phase"><span>01</span><h4>Prepare the episode</h4><p>Before execution</p></div>
+          <div class="preparation-track">
+            <article class="preparation-node contract-node"><div class="preparation-node-top"><svg viewBox="0 0 40 40" aria-hidden="true"><rect x="10" y="5" width="23" height="29" rx="4"/><path d="M16 13h11M16 20h11M16 27h6M6 12v21a5 5 0 0 0 5 5"/></svg><span>THE SPECIFICATION</span></div><h5>Task contract <span>+ seed</span></h5><p>Demand, action scope,<br> timing and scoring.</p><div class="node-bottom"><span class="node-dot"></span> Definitions stay fixed</div></article>
+            <div class="preparation-link" aria-hidden="true"><span></span><svg viewBox="0 0 16 16"><path d="m6 3 5 5-5 5"/></svg></div>
+            <article class="preparation-node generation-node"><div class="preparation-node-top"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="8" cy="12" r="4"/><circle cx="31" cy="9" r="4"/><circle cx="20" cy="30" r="4"/><path d="m12 12 15-2M10 16l8 10M29 13l-7 13"/></svg><span>THE INSTANCE</span></div><h5>Causal generation</h5><p>Preferences, targets,<br> world records and observations.</p><div class="node-bottom"><span class="node-dot"></span> Instance + source graph</div></article>
+            <div class="preparation-link" aria-hidden="true"><span></span><svg viewBox="0 0 16 16"><path d="m6 3 5 5-5 5"/></svg></div>
+            <article class="preparation-node admission-node"><div class="preparation-node-top"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="m20 4 13 5v11c0 7-7 12-13 16C14 32 7 27 7 20V9Z"/><path d="m13 19 5 5 9-10"/></svg><span>THE GATE</span></div><h5>Independent admission</h5><p>Check constraints<br> before the episode can run.</p><div class="node-bottom"><span class="node-dot"></span> Valid instances continue</div></article>
+          </div>
+          <div class="engine-handoff"><svg viewBox="0 0 1000 72" preserveAspectRatio="none" aria-hidden="true"><path d="M838 0V19Q838 31 826 31H181Q169 31 169 43V70"/><path d="m164 63 5 7 5-7"/></svg><span>ADMITTED INSTANCE</span></div>
+          <div class="interaction-chamber">
+            <div class="blueprint-phase"><span>02</span><h4>Run the shared interaction loop</h4><p>During execution</p></div>
+            <div class="interaction-grid">
+              <article class="interaction-node environment-node">
+                <div class="interaction-node-label"><span>ENVIRONMENT</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10H3ZM9 20v-7h6v7"/></svg></div>
+                <h5>World &amp; task runtime</h5><p>Apply actions.<br> Update state and task progress.</p>
+                <div class="state-tokens"><span>World state</span><span>Task progress</span><span>Constraints</span></div>
+                <div class="private-boundary"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="9" width="12" height="8" rx="2"/><path d="M6 9V6a4 4 0 0 1 8 0v3"/></svg><span>Targets &amp; internal progress stay here</span></div>
+              </article>
+              <div class="interaction-bridge" aria-label="Runtime sends public observations to the agent. The agent returns submitted actions to the runtime.">
+                <div class="exchange exchange-observation"><span>Public observation</span><svg viewBox="0 0 240 28" preserveAspectRatio="none" aria-hidden="true"><path class="exchange-line" d="M0 14H236"/><path d="m228 7 9 7-9 7"/><circle cx="12" cy="14" r="3"/></svg><small>Current message</small></div>
+                <span class="turn-badge"><span>↻</span> TURN BY TURN</span>
+                <div class="exchange exchange-action"><span>Submitted action</span><svg viewBox="0 0 240 28" preserveAspectRatio="none" aria-hidden="true"><path class="exchange-line" d="M240 14H4"/><path d="m12 7-9 7 9 7"/><circle cx="228" cy="14" r="3"/></svg><small>Write or wait</small></div>
+              </div>
+              <article class="interaction-node agent-node">
+                <div class="interaction-node-label"><span>AGENT</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14v12H5Z M12 3v5M8 12h1m6 0h1M9 16h6"/><circle cx="12" cy="3" r="1"/></svg></div>
+                <h5>Observe &amp; decide</h5><p>Use the public input.<br> Choose the next action.</p>
+                <div class="public-context"><div><span class="context-dot"></span> SELECTED PUBLIC CONTEXT</div><p>Prior messages, own actions<br> and protocol receipts.</p><small>None · history · window · retrieval</small></div>
+              </article>
+            </div>
+            <div class="feedback-note"><span class="feedback-symbol">↳</span><p><strong>When learning:</strong> the actual action determines corrections or confirmations delivered on the next reserved public turn.</p></div>
+          </div>
+          <div class="evidence-handoff"><span></span><p>Recorded throughout the interaction</p><span></span></div>
+          <div class="evidence-terminal"><div class="evidence-terminal-title"><span class="terminal-icon"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 7h22v20H5ZM10 7V3h12v4M10 13h12M10 18h12M10 23h7"/></svg></span><div><span>03 / INSPECT</span><h4>Replayable evidence</h4></div></div><div class="evidence-artifacts"><span><i></i> Public trace</span><span><i></i> Actual event graph</span><span><i></i> Final assessment</span></div></div>
+          <figcaption class="blueprint-caption"><span>ONE ENGINE · ALL SIX DEMANDS</span><p>Task mechanisms vary inside the runtime. The final assessment is completed at the end; private evidence is available for author inspection.</p></figcaption>
+        </figure>
         <div class="demand-explorer-heading" id="demand-explorer-heading"><span class="micro">SIX MEMORY DEMANDS / ONE ENGINE</span><h3>What does this task require the agent to remember?</h3><p>Choose a demand to inspect its specific mechanism and recorded examples. D6 reuses the intention or learning mechanism while keeping multiple tasks separate.</p></div>
         <div class="explorer" id="explorer">
           <div class="demand-tabs" role="tablist" aria-label="Memory demand">
