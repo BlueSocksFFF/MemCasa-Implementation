@@ -11,7 +11,7 @@
     D3: {name:'Rules',color:'#b1dbb1',rgb:'177,219,177',theory:'Instruction-based learning',title:'Remember which rule applies.',description:'Maintain established instructions as they are replaced or deleted. Resolve the applicable rule for the current context.',glyph:'≋',compiler:'Rule contract',active:['Rules'],steps:[['Establish','Keep general and specific rules.'],['Revise','Replace or delete an instruction.'],['Resolve','Handle context and overrides.'],['Apply','Use the rule that remains valid.']],detail:'PreferenceLedger resolves rule versions, contextual specificity and fallback inside the runtime.',start:12},
     D4: {name:'Status',color:'#c6b1e2',rgb:'198,177,226',theory:'Working-memory updating',title:'Remember what is true now.',description:'Integrate partial observations into the latest state. Preserve unchanged fields and identify what still differs from the requested condition.',glyph:'≈',compiler:'Evidence contract',active:['State'],steps:[['Observe','Receive a partial state report.'],['Update','Replace only the supplied fields.'],['Compare','Check the current condition.'],['Respond','Act on unmet fields or wait.']],detail:'StateLedger preserves field-wise state across updates. Historical values and current state have different roles.',start:12},
     D5: {name:'Learned',color:'#dfc083',rgb:'223,192,131',theory:'Feedback-supported learning',title:'Remember what experience confirmed.',description:'Learn a configuration through ordered attempts and feedback. Retain the confirmed values and reuse them after the world changes.',glyph:'✧',compiler:'Learning contract',active:['Learning'],steps:[['Attempt','Try the current permitted field.'],['Get feedback','Receive a correction or confirmation.'],['Retain','Keep the confirmed configuration.'],['Reuse','Restore it after an external reset.']],detail:'LearningTask tracks attempts and confirmed fields. The next public feedback depends on the actual submitted action.',start:3},
-    D6: {name:'Unfinished',color:'#90d4d5',rgb:'144,212,213',theory:'Memory for goals',title:'Remember where each goal stands.',description:'Keep tasks and their progress separate across interruption. Resume the correct unfinished field, or act when each independent timer becomes due.',glyph:'∥',compiler:'Learning / intention contracts',active:['Learning'],steps:[['Start','Learn a task’s ordered fields.'],['Pause','Keep its identity and progress.'],['Switch','Work on a different task.'],['Resume','Continue the actual unfinished field.']],detail:'Configuration resume reuses LearningTask. The contract fixes pause/resume windows; submitted actions determine field progress.',start:43}
+    D6: {name:'Unfinished',color:'#90d4d5',rgb:'144,212,213',theory:'Memory for goals',title:'Remember where each goal stands.',description:'Keep tasks and their progress separate across interruption. Resume the correct unfinished field, or act when each independent timer becomes due.',glyph:'∥',compiler:'Learning contract',active:['Learning'],steps:[['Start','Learn a task’s ordered fields.'],['Pause','Keep its identity and progress.'],['Switch','Work on a different task.'],['Resume','Continue the actual unfinished field.']],detail:'Configuration resume reuses LearningTask. The contract fixes pause/resume windows; submitted actions determine field progress.',start:43}
   };
   const mechanisms = [['Intention','IntentionTask'],['History','HistoryLedger'],['Rules','PreferenceLedger'],['State','StateLedger'],['Learning','LearningTask']];
   const state = {demand:'D5',episode:'D5',view:'engine',turn:3,source:0,timer:null};
@@ -30,7 +30,8 @@
     $('demand-title').textContent = def.title; $('demand-description').textContent = def.description; $('demand-glyph').textContent=def.glyph;
     $('family-control').hidden = demand !== 'D6'; $('family').value = episode === 'D6timers' ? 'D6timers':'D6';
     $('contract-note').textContent=def.compiler;
-    $('mechanism-bank').innerHTML=mechanisms.map(([name,module])=>`<div class="mechanism ${def.active.includes(name)?'active':''}">${name}<small>${module}</small></div>`).join('');
+    $('mechanism-heading').textContent=`${demand} ${def.name} · ${def.active[0]} mechanism`;
+    $('mechanism-bank').innerHTML=mechanisms.filter(([name])=>def.active.includes(name)).map(([name,module])=>`<div class="mechanism active">${name}<small>${module}</small></div>`).join('');
     $('active-path').innerHTML=def.steps.map(([title,description],i)=>`<div class="path-step"><span>${i+1}</span><strong>${escape(title)}</strong><p>${escape(description)}</p></div>`).join('');
     $('mechanism-detail').textContent=def.detail;
     $('source-select').innerHTML=current().sources.map((s,i)=>`<option value="${i}">${escape(s.label)}</option>`).join('');
@@ -41,7 +42,7 @@
     if (view !== 'replay') stop();
     state.view = view;
     document.querySelectorAll('[data-view]').forEach(b=>{const selected=b.dataset.view===view;b.setAttribute('aria-selected',String(selected));b.tabIndex=selected?0:-1;});
-    ['engine','source','replay'].forEach(v=>$(`panel-${v}`).hidden=v!==view); saveURL();
+    ['engine','source','replay'].forEach(v=>$(`panel-${v}`).hidden=v!==view); requestAnimationFrame(updateGraphNavigation); saveURL();
   }
   // This is a layout of exported edges, not a second implementation of the graph.
   function renderGraph() {
@@ -50,10 +51,10 @@
     const ranks=new Map(source.nodes.map(n=>[n.id,0]));
     for(let i=0;i<source.nodes.length;i++) for(const e of source.edges) ranks.set(e.target,Math.max(ranks.get(e.target)||0,(ranks.get(e.source)||0)+1));
     const groups=[]; for(const n of source.nodes) (groups[ranks.get(n.id)]??=[]).push(n);
-    const width=Math.max(760,groups.length*225+40), height=Math.max(260,Math.max(...groups.map(g=>g?.length||0))*125+70);
-    const nodeWidth=190,nodeHeight=91,positions=new Map();
-    groups.forEach((group,rank)=>group.forEach((n,i)=>positions.set(n.id,{x:groups.length===1?(width-nodeWidth)/2:30+rank*(width-nodeWidth-60)/(groups.length-1),y:(height-group.length*125)/2+i*125+17})));
-    const svg=$('source-graph'); svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.style.minWidth=`${Math.min(width,1000)}px`;
+    const width=Math.max(760,groups.length*300+60), height=Math.max(310,Math.max(...groups.map(g=>g?.length||0))*162+100);
+    const nodeWidth=260,nodeHeight=124,positions=new Map();
+    groups.forEach((group,rank)=>group.forEach((n,i)=>positions.set(n.id,{x:groups.length===1?(width-nodeWidth)/2:30+rank*(width-nodeWidth-60)/(groups.length-1),y:(height-group.length*162)/2+i*162+15})));
+    const svg=$('source-graph'); svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.style.minWidth=`${width}px`;svg.style.width=`${width}px`;
     let bypass=0;
     const paths=source.edges.map(e=>{const a=positions.get(e.source),b=positions.get(e.target);let path;
       if(ranks.get(e.target)-ranks.get(e.source)>1){
@@ -61,10 +62,14 @@
         path=`M${ax} ${a.y+nodeHeight} V${track-8} Q${ax} ${track} ${ax+8} ${track} H${bx-8} Q${bx} ${track} ${bx} ${track-8} V${b.y+nodeHeight}`;
       }else path=`M${a.x+nodeWidth} ${a.y+nodeHeight/2} C${a.x+nodeWidth+25} ${a.y+nodeHeight/2},${b.x-25} ${b.y+nodeHeight/2},${b.x} ${b.y+nodeHeight/2}`;
       return `<path class="graph-edge" marker-end="url(#edge-arrow)" d="${path}"/>`;}).join('');
-    const nodes=source.nodes.map((n,i)=>{const p=positions.get(n.id);return `<g class="graph-node ${n.tone==='fixed'?'fixed':''}" data-node="${i}" role="button" tabindex="0" aria-label="Inspect ${escape(n.title)}" transform="translate(${p.x},${p.y})"><rect width="${nodeWidth}" height="${nodeHeight}" rx="5"/><text x="14" y="18" class="node-index">${String(i+1).padStart(2,'0')} / ${n.tone==='fixed'?'CONTRACT':'GENERATED'}</text><text x="14" y="38">${escape(n.title)}</text>${n.lines.slice(0,2).map((line,j)=>`<text x="14" y="${58+j*15}" class="node-line">${escape(line.length>29?line.slice(0,28)+'…':line)}</text>`).join('')}</g>`;}).join('');
+    const nodes=source.nodes.map((n,i)=>{const p=positions.get(n.id);return `<g class="graph-node ${n.tone==='fixed'?'fixed':''}" data-node="${i}" role="button" tabindex="0" aria-label="Inspect ${escape(n.title)}" transform="translate(${p.x},${p.y})"><rect width="${nodeWidth}" height="${nodeHeight}" rx="5"/><text x="16" y="25" class="node-index">${String(i+1).padStart(2,'0')} / ${n.tone==='fixed'?'CONTRACT':'GENERATED'}</text><text x="16" y="53">${escape(n.title)}</text>${n.lines.slice(0,2).map((line,j)=>`<text x="16" y="${80+j*21}" class="node-line">${escape(line.length>29?line.slice(0,28)+'…':line)}</text>`).join('')}</g>`;}).join('');
     svg.innerHTML=`<defs><marker id="edge-arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,1 L7,4 L0,7" fill="none" stroke="#88a69a"/></marker></defs>${paths}${nodes}`;
     svg.querySelectorAll('[data-node]').forEach(g=>{g.addEventListener('click',()=>inspectNode(Number(g.dataset.node)));g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inspectNode(Number(g.dataset.node));}});});
-    inspectNode(source.nodes.findIndex(n=>n.id===source.root));
+    $('graph-scroll').scrollLeft=0;
+    inspectNode(source.nodes.findIndex(n=>n.id===source.root)); requestAnimationFrame(updateGraphNavigation);
+  }
+  function updateGraphNavigation() {
+    const graph=$('graph-scroll'); $('graph-left').disabled=graph.scrollLeft<=1; $('graph-right').disabled=graph.scrollLeft+graph.clientWidth>=graph.scrollWidth-1;
   }
   function inspectNode(index) {
     const source=current().sources[state.source], n=source.nodes[Math.max(0,index)];
@@ -110,11 +115,13 @@
     buttons.forEach((b,index)=>b.addEventListener('keydown',e=>{let next;if(e.key==='ArrowRight')next=(index+1)%buttons.length;if(e.key==='ArrowLeft')next=(index-1+buttons.length)%buttons.length;if(e.key==='Home')next=0;if(e.key==='End')next=buttons.length-1;if(next!==undefined){e.preventDefault();buttons[next].focus();onSelect(buttons[next]);}}));
   }
   document.querySelectorAll('[data-select]').forEach(b=>b.addEventListener('click',()=>selectDemand(b.dataset.select)));
-  document.querySelectorAll('[data-demand]').forEach(b=>b.addEventListener('click',()=>{selectDemand(b.dataset.demand);selectView('engine');$('explore').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});}));
+  document.querySelectorAll('[data-demand]').forEach(b=>b.addEventListener('click',()=>{selectDemand(b.dataset.demand);selectView('engine');$('demand-explorer-heading').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});}));
   document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>selectView(b.dataset.view)));
   initTabs('[data-select]',b=>selectDemand(b.dataset.select));initTabs('[data-view]',b=>selectView(b.dataset.view));
   $('family').addEventListener('change',()=>selectDemand('D6',$('family').value));
   $('source-select').addEventListener('change',()=>{state.source=Number($('source-select').value);renderGraph();});
+  $('graph-scroll').addEventListener('scroll',updateGraphNavigation);window.addEventListener('resize',updateGraphNavigation);
+  ['left','right'].forEach(direction=>$(`graph-${direction}`).addEventListener('click',()=>$('graph-scroll').scrollBy({left:direction==='left'?-320:320,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'})));
   $('jump-replay').addEventListener('click',()=>selectView('replay'));
   $('turn-range').addEventListener('input',()=>go(Number($('turn-range').value)));
   $('prev-turn').addEventListener('click',()=>go(state.turn-1));$('next-turn').addEventListener('click',()=>go(state.turn+1));
